@@ -13,28 +13,29 @@ class InvalidRequestParamsError(Exception):
 
    
 class APIRequest(object): 
-    def __init__(self, json_message):
-        self.params = json.loads(json_message)
+    def __init__(self, json_message=None):
+        self.params = {} 
+        if json_message:
+            self.params = json.loads(json_message)
 
     def __str__(self):
-        return self._encoded_params() 
+        return self._encode_params(self.params) 
    
     def sign(self, private_key):
         self.params['_signature'] = self._create_signature(private_key)
     
     def authenticate(self, private_key):
         if not self._is_signed():
-            raise InvalidRequestParamsError('_signature is missing from request params')
-        client_signature = self.params['_signature']
-        return self._create_signature(private_key) == client_signature
+            raise InvalidRequestParamsError('The request was not signed by the sender')
+        return self._create_signature(private_key) == self.params['_signature'] 
        
     def _create_signature(self, private_key):
         if not self._can_be_signed():
-            raise InvalidRequestParamsError('Request params must contain _instance_key and _timestamp')
-        current_params = self.params
-        if self._is_signed():
-            del current_params['_signature']
-        encoded_params = self._encode_params(current_params)
+            raise InvalidRequestParamsError('The request params must contain _instance_key and _timestamp')
+        params_copy = self.params.copy()
+        if '_signature' in params_copy:
+            del params_copy['_signature']
+        encoded_params = self._encode_params(params_copy)
         signature_digest = hmac.new(private_key, encoded_params, digestmod=hashlib.sha256).digest()
         return base64.b64encode(signature_digest).decode()
 

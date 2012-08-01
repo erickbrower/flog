@@ -1,7 +1,8 @@
-from flask import Flask, json, request, Response
+from flask import Flask
+from flask import json
+from flask import request
+from flask import Response
 from flask.ext.mongoengine import MongoEngine
-from tasks import *
-import json, urllib, datetime, hmac, hashlib, base64
 
 
 app = Flask(__name__)

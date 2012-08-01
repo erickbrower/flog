@@ -26,10 +26,12 @@ class APIRequest(object):
         self.params = {} 
         if json_message:
             self.params = json.loads(json_message)
+            if not self.params: 
+                raise InvalidRequestParamsError('Not a valid json message') 
 
     def __str__(self):
         return self._encode_params(self.params) 
-   
+
     def sign(self, private_key):
         """Generates an encoded url string that contains an encrypted signature. 
         
@@ -72,6 +74,9 @@ class APIRequest(object):
         if not self._is_signed():
             raise InvalidRequestParamsError('The request has not been signed.')
         return self._create_signature(private_key) == self.params['_signature'] 
+    
+    def is_valid(self):
+        return self._can_be_signed()
 
     def _create_signature(self, private_key):
         """Creates an encrypted hash from the request params and private key.

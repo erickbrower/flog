@@ -2,7 +2,6 @@ import urllib
 import hmac
 import hashlib
 import base64
-import json
 
 
 class InvalidRequestParamsError(Exception):
@@ -22,12 +21,10 @@ class APIRequest(object):
         request.sign('MyPrivateKey123')
        
     """
-    def __init__(self, json_message=None):
+    def __init__(self, params=None):
         self.params = {} 
-        if json_message:
-            self.params = json.loads(json_message)
-            if not self.params: 
-                raise InvalidRequestParamsError('Not a valid json message') 
+        if params and isinstance(params, dict):
+            self.params = params 
 
     def __str__(self):
         return self._encode_params(self.params) 

@@ -1,7 +1,76 @@
+from __future__ import absolute_import
+from celery import Celery
+from flask import Flask
+from flask import json
+from flask import request
+from flask import Response
+from flask.ext.mongoengine import MongoEngine
+import datetime
 import urllib
 import hmac
 import hashlib
 import base64
+
+app = Flask('woodhouse')
+app.config['MONGODB_DB'] = 'woodhouse_dev'
+app.config['SECRET_KEY'] = '27dN3HfFgEOpEfdO'
+db = MongoEngine(app)
+
+celery = Celery(broker='amqp://woodhouse:12345678@localhost:5672/dev_vhost', 
+        include=['woodhouse.tasks'])
+
+celery.conf.update(CELERY_TASK_RESULT_EXPIRES=3600)
+
+@app.route('/log', methods=['POST'])
+def api_log():
+    if not request.headers['Content-Type'] == 'application/json':
+        return False
+    process_log_request.delay(request)
+    response = Response(json.dumps({'received': 'ok'}), status=200, mimetype='application/json')
+    return response
+
+@celery.task
+def process_log_request(request):
+    if not request.json: 
+        return False
+    instance = Application.objects(
+            instance_key=request.json['_instance_key']
+            ).only('private_key')
+    if not instance: 
+        return False
+    api_request = APIRequest(request.json)
+    if not api_request.authenticate(instance.private_key):
+        return False
+    del api_request.params['_signature']
+    log = Log(content=api_request.params, created=api_request.params['_timestamp'], application=instance)
+    return log.save()
+
+
+class Application(db.Document):
+    name = db.StringField(max_length=255)
+    instance = db.StringField(max_length=255)
+    api_key = db.StringField(max_length=255, unique=True)
+    api_private_key = db.StringField()
+    created = db.DateTimeField(default=datetime.datetime.now, required=True)
+    description = db.StringField()
+    ip_addresses = db.ListField(db.StringField())
+
+    meta = {
+        'allow_inheritance': True,
+        'indexes': ['name', '-created'],
+        'ordering': ['name']
+    }
+
+
+class Log(db.Document):
+    content = db.DictField()
+    created = db.DateTimeField(default=datetime.datetime.now, required=True)
+    application = db.ReferenceField('Application')
+
+    meta = {
+        'max_size': 2000000000,
+        'indexes': ['-created', 'application']
+    }
 
 
 class InvalidRequestParamsError(Exception):
@@ -107,3 +176,4 @@ class APIRequest(object):
     def _can_be_signed(self):
         return '_instance_key' in self.params and '_timestamp' in self.params
 
+app.run(debug=True)

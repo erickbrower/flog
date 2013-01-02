@@ -1,8 +1,8 @@
-import datetime
-from woodhouse.app import db
+import datetime 
+from woodhouse import db 
 
 
-class Application(db.Document):
+class Host(db.Document):
     name = db.StringField(max_length=255, required=True)
     instance = db.StringField(max_length=255)
     api_key = db.StringField(max_length=255, unique=True, required=True)
@@ -20,9 +20,20 @@ class Application(db.Document):
 class Log(db.Document):
     content = db.DictField()
     created = db.DateTimeField(default=datetime.datetime.now, required=True)
-    application = db.ReferenceField(Application, dbref=False, required=True)
+    host = db.ReferenceField(Host, dbref=False, required=True)
 
     meta = {
         'max_size': 2000000000,
-        'indexes': ['-created', 'application']
+        'indexes': ['-created', 'host']
+    }
+
+
+class User(db.Document):
+    email_address = db.StringField(required=True)
+    password_hash = db.StringField(required=True)
+    created = db.DateTimeField(default=datetime.datetime.now, required=True)
+
+    meta = {
+        'indexes': ['email_address'],
+        'ordering': ['email_address']
     }

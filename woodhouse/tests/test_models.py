@@ -1,45 +1,45 @@
 from woodhouse.app import app
-from woodhouse.models import Application, Log
+from woodhouse.models import Host, Log, User 
 from flask.ext.mongoengine import ValidationError
-from factories import ApplicationFactory, LogFactory
+from factories import HostFactory, LogFactory, UserFactory
 import unittest
 
 
-class ApplicationModelTest(unittest.TestCase):
-    def setUp(self):
+class HostModelTest(unittest.TestCase):
+    def setUp(sejf):
         app.config['TESTING'] = True
 
     def tearDown(self):
-        Application.drop_collection()
+        Host.drop_collection()
         Log.drop_collection()
 
 
     def test_should_have_attributes(self):
-        application = ApplicationFactory()
-        assert hasattr(application, 'name')
-        assert hasattr(application, 'instance')
-        assert hasattr(application, 'description')
-        assert hasattr(application, 'api_key')
-        assert hasattr(application, 'api_private_key')
-        assert hasattr(application, 'created')
+        host = HostFactory()
+        assert hasattr(host, 'name')
+        assert hasattr(host, 'instance')
+        assert hasattr(host, 'description')
+        assert hasattr(host, 'api_key')
+        assert hasattr(host, 'api_private_key')
+        assert hasattr(host, 'created')
 
     def test_should_require_name(self):
-        application = ApplicationFactory()
-        application.name = None
+        host = HostFactory()
+        host.name = None
         with self.assertRaises(ValidationError):
-            application.validate()
+            host.validate()
 
     def test_should_require_api_key(self):
-        application = ApplicationFactory()
-        application.api_key = None
+        host = HostFactory()
+        host.api_key = None
         with self.assertRaises(ValidationError):
-            application.validate()
+            host.validate()
 
     def test_should_require_api_private_key(self):
-        application = ApplicationFactory()
-        application.api_private_key = None
+        host = HostFactory()
+        host.api_private_key = None
         with self.assertRaises(ValidationError):
-            application.validate()
+            host.validate()
 
 
 class LogModelTest(unittest.TestCase):
@@ -47,17 +47,43 @@ class LogModelTest(unittest.TestCase):
         app.config['TESTING'] = True
 
     def tearDown(self):
-        Application.drop_collection()
+        Host.drop_collection()
         Log.drop_collection()
 
     def test_should_have_attributes(self):
         log = LogFactory.build()
         assert hasattr(log, 'content')
-        assert hasattr(log, 'application')
+        assert hasattr(log, 'host')
         assert hasattr(log, 'created')
 
-    def test_should_require_application(self):
+    def test_should_require_host(self):
         log = LogFactory()
-        log.application = None
+        log.host = None
         with self.assertRaises(ValidationError):
             log.validate()
+
+
+class UserModelTest(unittest.TestCase):
+    def setUp(self):
+        app.config['TESTING'] = True
+
+    def tearDown(self):
+        User.drop_collection()
+
+    def test_should_have_attributes(self):
+        user = UserFactory.build()
+        assert hasattr(user, 'email_address')
+        assert hasattr(user, 'password_hash')
+        assert hasattr(user, 'created')
+
+    def test_should_require_email_address(self):
+        user = UserFactory.build()
+        user.email_address = None
+        with self.assertRaises(ValidationError):
+            user.validate()
+
+    def test_should_require_password_hash(self):
+        user = UserFactory.build()
+        user.password_hash = None
+        with self.assertRaises(ValidationError):
+            user.validate()

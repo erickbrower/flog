@@ -2,6 +2,7 @@ import base64
 import hashlib
 import hmac
 import urllib
+import copy
 
 
 class ApiRequestAuthority(object):
@@ -37,7 +38,8 @@ class ApiRequestAuthority(object):
             raise ValueError('Payload must be of type dict')
         if not '_signature' in payload:
             raise ValueError('The request has not been signed.')
-        return cls._create_signature(payload, private_key) == payload['_signature'] 
+        return cls._create_signature(payload, private_key) == unicode(payload['_signature']) 
+
 
     @classmethod
     def _can_be_signed(cls, payload):
@@ -57,13 +59,13 @@ class ApiRequestAuthority(object):
         Returns:
             An hash of type string.
         """
-        payload_copy = payload.copy()
+        payload_copy = dict(payload.copy())
         if '_signature' in payload_copy:
             del payload_copy['_signature']
         items = payload_copy.items()
         items.sort()
         encoded_params = urllib.urlencode(dict(items))
-        signature_digest = hmac.new(private_key, encoded_params, 
+        signature_digest = hmac.new(private_key.encode('ascii'), encoded_params, 
                 digestmod=hashlib.sha256).digest()
-        return base64.b64encode(signature_digest).decode()
+        return unicode(base64.b64encode(signature_digest).decode())
 

@@ -1,12 +1,11 @@
-import time
 from flask import Flask
 from flask import json, request, Response, abort
 from flask.ext.mongoengine import MongoEngine
-from woodhouse.api_request_authority import ApiRequestAuthority
+from flog.api_request_authority import ApiRequestAuthority
 
 
-app = Flask('woodhouse')
-app.config['MONGODB_DB'] = 'woodhouse_dev'
+app = Flask('flog')
+app.config['MONGODB_DB'] = 'flog_dev'
 app.config['SECRET_KEY'] = 'd0ntp4nic'
 
 db = MongoEngine(app)
@@ -52,7 +51,7 @@ def create_log():
         if not ApiRequestAuthority.validate(payload, the_host.api_private_key):
             abort(400) #Couldn't validate signature
     except ValueError as e:
-        abort(400, e.message)
+        abort(400)
     del payload['_signature']
     del payload['_api_key']
     del payload['_timestamp']
@@ -60,7 +59,7 @@ def create_log():
     js = {'status': 'success'} if log.save() else {'status': 'failure'}
     return Response(json.dumps(js), status='200', mimetype='application/json')
 
-from woodhouse import models
+from flog import models
 
 if __name__ == '__main__':
     app.run(debug=True)

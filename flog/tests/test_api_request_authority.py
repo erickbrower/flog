@@ -1,6 +1,6 @@
 import unittest
 import time
-from woodhouse.api_request_authority import ApiRequestAuthority
+from flog.api_request_authority import ApiRequestAuthority
 
 
 class ApiRequestAuthorityTest(unittest.TestCase):

@@ -1,5 +1,5 @@
 import datetime 
-from woodhouse import db 
+from flog import db 
 
 
 class Host(db.Document):

@@ -1,5 +1,5 @@
 import factory
-from woodhouse.models import Host, Log, User
+from flog.models import Host, Log, User
 
 class HostFactory(factory.Factory):
     FACTORY_FOR = Host

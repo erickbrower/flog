@@ -1,5 +1,5 @@
-from woodhouse.app import app
-from woodhouse.models import Host, Log, User 
+from flog import app
+from flog.models import Host, Log, User 
 from flask.ext.mongoengine import ValidationError
 from factories import HostFactory, LogFactory, UserFactory
 import unittest

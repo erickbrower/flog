@@ -5,10 +5,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 import urllib
 from flask import json
 from lettuce import step
-from woodhouse import app
-from woodhouse.models import Host, Log
-from woodhouse.api_request_authority import ApiRequestAuthority
-from pprint import pprint
+from flog import app
+from flog.models import Host, Log
+from flog.api_request_authority import ApiRequestAuthority
 
 
 app.config['TESTING'] = True

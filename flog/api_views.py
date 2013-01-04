@@ -4,8 +4,7 @@ from flog.api_request_authority import ApiRequestAuthority
 
 api = Blueprint('api', __name__)
 
-
-def format_response(q_results):
+def format_query_results(q_results):
     class DateEncoder(json.JSONEncoder):
         def default(self, obj):
             if hasattr(obj, 'isoformat'):
@@ -14,9 +13,9 @@ def format_response(q_results):
                 return str(obj)
             return json.JSONEncoder.default(self, obj)
     res = [el._data for el in q_results]
-    for thing in res:
-        del thing['host']
-        del thing[None]
+    for el in res:
+        del el['host']
+        del el[None]
     return json.dumps(res, cls=DateEncoder)
 
 def validate_payload(payload):
@@ -36,8 +35,6 @@ def clean_sig_data(payload):
     del payload['_api_key']
     del payload['_timestamp']
     del payload['_signature']
-    return payload 
-
 
 @api.route('/logs', methods=['GET'])
 def list_logs():
@@ -45,7 +42,7 @@ def list_logs():
     host = validate_payload(payload)
     clean_sig_data(payload)
     results = Log.objects(host=host, **payload)
-    r_content = format_response(results)
+    r_content = format_query_results(results)
     return Response(r_content, status='200', mimetype='application/json')
 
 @api.route('/logs', methods=['POST'])
@@ -53,7 +50,8 @@ def create_log():
     payload = dict(request.form.items())
     host = validate_payload(payload)
     clean_sig_data(payload)
-    log = Log(content=payload, host=host)
+    log = Log(**payload)
+    log.host = host
     js = {'status': 'success'} if log.save() else {'status': 'failure'}
     return Response(json.dumps(js), status='200', mimetype='application/json')
 

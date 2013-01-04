@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-import os, sys, datetime
+import os, sys, time
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 
 import urllib
@@ -11,7 +10,6 @@ from flog.api_request_authority import ApiRequestAuthority
 
 app.config['TESTING'] = True
 client = app.test_client()
-Host.drop_collection()
 
 @step(u'Given I have some Hosts')
 def given_i_have_some_hosts(step):
@@ -26,7 +24,7 @@ def when_i_send_requests_to_create_new_log_entries(step):
     world.responses = []
     for t_row in step.hashes:
         host = Host.objects(api_key=t_row['_api_key']).first()
-        t_row['_timestamp'] = datetime.datetime.now().isoformat()
+        t_row['_timestamp'] = time.time()
         ApiRequestAuthority.sign(t_row, host.api_private_key)
         response = client.post('/api/logs', data=t_row)
         world.responses.append(response)
@@ -50,7 +48,7 @@ def and_i_have_some_logs(step):
 @step(u'When I send a request for all of \'([^\']*)\' Logs with \'([^\']*)\' = \'([^\']*)\'')
 def when_i_send_a_request_for_all_of_group1_logs(step, host_key, field, value):
     host = Host.objects(api_key=host_key).first()
-    req = { '_api_key': host_key, '_timestamp': datetime.datetime.now().isoformat() }
+    req = { '_api_key': host_key, '_timestamp': time.time() }
     req[field] = value
     ApiRequestAuthority.sign(req, host.api_private_key)
     world.response = client.get('/api/logs?' + urllib.urlencode(req))

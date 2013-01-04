@@ -2,7 +2,6 @@ import base64
 import hashlib
 import hmac
 import urllib
-import copy
 
 
 class ApiRequestAuthority(object):

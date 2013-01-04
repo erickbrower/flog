@@ -9,7 +9,6 @@ from flog import app
 from flog.models import Host, Log
 from flog.api_request_authority import ApiRequestAuthority
 
-
 app.config['TESTING'] = True
 client = app.test_client()
 Host.drop_collection()
@@ -37,6 +36,8 @@ def then_i_should_be_able_to_query_for_the_logs(step):
     for q_data in step.hashes:
         host = Host.objects(api_key=q_data['_api_key']).first()
         q_data['_timestamp'] = datetime.datetime.now().isoformat()
-        ApiRequestAuthority.sign(q_data, host.api_private_key)
-        response = client.get('/logs?' + urllib.urlencode(q_data))
-        assert response._status_code != 400
+        signed_q_data = ApiRequestAuthority.sign(q_data, host.api_private_key)
+        response = client.get('/logs?' + urllib.urlencode(signed_q_data))
+        assert response._status_code == 200
+        r = json.loads(response.data)
+        assert len(r) > 0

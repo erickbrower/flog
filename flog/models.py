@@ -23,7 +23,6 @@ class Log(db.Document):
     host = db.ReferenceField(Host, dbref=False, required=True)
 
     meta = {
-        'max_size': 2000000000,
         'indexes': ['-created', 'host']
     }
 

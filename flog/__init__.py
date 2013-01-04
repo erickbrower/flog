@@ -13,19 +13,18 @@ db = MongoEngine(app)
 
 @app.route('/logs', methods=['GET'])
 def list_logs():
-    return json.dumps(request.values)
-    if not '_api_key' in request.values:
+    payload = dict(request.values.items())
+    if '_api_key' not in payload:
         abort(400) #Nice try, amigo.
-    the_host = models.Host.objects(api_key=request.values['_api_key']).first()
+    the_host = models.Host.objects(api_key=payload['_api_key']).first()
     if not the_host:
         abort(400) #No host exists with that api_key
-    payload = {key: value for (key, value) in request.form.items()}
     try:
         if not ApiRequestAuthority.validate(payload, the_host.api_private_key):
             abort(400) #Couldn't validate signature
     except ValueError:
         abort(400)
-    results = models.Log.objects(api_key=payload['_api_key'])
+    results = models.Log.objects(host=the_host)
     res = [el._data for el in results]
     for thing in res:
         del thing['host']
@@ -41,16 +40,16 @@ def list_logs():
 
 @app.route('/logs', methods=['POST'])
 def create_log():
-    if not '_api_key' in request.form:
+    payload = dict(request.form.items())
+    if not '_api_key' in payload:
         abort(400) #Nice try, amigo.
-    the_host = models.Host.objects(api_key=request.form['_api_key']).first()
+    the_host = models.Host.objects(api_key=payload['_api_key']).first()
     if not the_host:
         abort(400) #No host exists with that api_key
-    payload = {key: value for (key, value) in request.form.items()}
     try:
         if not ApiRequestAuthority.validate(payload, the_host.api_private_key):
             abort(400) #Couldn't validate signature
-    except ValueError as e:
+    except ValueError:
         abort(400)
     del payload['_signature']
     del payload['_api_key']

@@ -1,5 +1,5 @@
 import datetime 
-from flog import db 
+from flog import db
 
 
 class Host(db.Document):
@@ -35,3 +35,4 @@ class User(db.Document):
         'indexes': ['email_address'],
         'ordering': ['email_address']
     }
+

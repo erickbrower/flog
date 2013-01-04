@@ -28,7 +28,7 @@ def when_i_send_requests_to_create_new_log_entries(step):
         host = Host.objects(api_key=t_row['_api_key']).first()
         t_row['_timestamp'] = datetime.datetime.now().isoformat()
         ApiRequestAuthority.sign(t_row, host.api_private_key)
-        response = client.post('/logs', data=t_row)
+        response = client.post('/api/logs', data=t_row)
         world.responses.append(response)
 
 @step(u'Then I should receive successful responses')
@@ -53,7 +53,7 @@ def when_i_send_a_request_for_all_of_group1_logs(step, host_key, field, value):
     req = { '_api_key': host_key, '_timestamp': datetime.datetime.now().isoformat() }
     req[field] = value
     ApiRequestAuthority.sign(req, host.api_private_key)
-    world.response = client.get('/logs?' + urllib.urlencode(req))
+    world.response = client.get('/api/logs?' + urllib.urlencode(req))
 
 @step(u'Then I should get the two Logs in the response')
 def then_i_should_get_the_two_logs_in_the_response(step):

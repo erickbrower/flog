@@ -13,8 +13,11 @@ class HostFactory(factory.Factory):
 
 class LogFactory(factory.Factory):
     FACTORY_FOR = Log
-
-    content = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
+    field1 = factory.Sequence(lambda n: 'value {0}'.format(n))
+    field2 = factory.Sequence(lambda n: 'value {0}'.format(n))
+    van = 'halen'
+    foo = 'bar'
+    stuff = 'thing'
     host = factory.SubFactory(HostFactory)
 
 

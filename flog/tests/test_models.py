@@ -46,7 +46,6 @@ class LogModelTest(unittest.TestCase):
         Log.drop_collection()
 
     def test_should_have_attributes(self):
-        assert hasattr(self.log, 'content')
         assert hasattr(self.log, 'host')
         assert hasattr(self.log, 'created')
 

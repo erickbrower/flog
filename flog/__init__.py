@@ -24,7 +24,11 @@ def list_logs():
             abort(400) #Couldn't validate signature
     except ValueError:
         abort(400)
-    results = models.Log.objects(host=the_host)
+    del payload['_api_key']
+    del payload['_timestamp']
+    del payload['_signature']
+    results = models.Log.objects(host=the_host, **payload)
+    #Format the result response
     res = [el._data for el in results]
     for thing in res:
         del thing['host']

@@ -17,8 +17,7 @@ class Host(db.Document):
     }
 
 
-class Log(db.Document):
-    content = db.DictField()
+class Log(db.DynamicDocument):
     created = db.DateTimeField(default=datetime.datetime.now, required=True)
     host = db.ReferenceField(Host, dbref=False, required=True)
 

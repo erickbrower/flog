@@ -1,6 +1,6 @@
 from flask import Blueprint, request, abort, json, Response
 from flog.models import Host, Log
-from flog.api_request_authority import ApiRequestAuthority 
+from flog.notary import Notary
 
 api = Blueprint('api', __name__)
 
@@ -25,7 +25,7 @@ def validate_payload(payload):
     if not host:
         abort(400) #No host exists with that api_key
     try:
-        if not ApiRequestAuthority.validate(payload, host.api_private_key):
+        if not Notary.validate(payload, host.api_private_key):
             abort(400) #Couldn't validate signature
     except ValueError:
         abort(400)

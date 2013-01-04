@@ -4,7 +4,7 @@ import hmac
 import urllib
 
 
-class ApiRequestAuthority(object):
+class Notary(object):
     @classmethod 
     def sign(cls, payload, private_key):
         if not isinstance(payload, dict):

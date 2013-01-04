@@ -6,7 +6,7 @@ from flask import json
 from lettuce import step, world
 from flog import app
 from flog.models import Host, Log
-from flog.api_request_authority import ApiRequestAuthority
+from flog.notary import Notary
 
 app.config['TESTING'] = True
 client = app.test_client()
@@ -25,7 +25,7 @@ def when_i_send_requests_to_create_new_log_entries(step):
     for t_row in step.hashes:
         host = Host.objects(api_key=t_row['_api_key']).first()
         t_row['_timestamp'] = time.time()
-        ApiRequestAuthority.sign(t_row, host.api_private_key)
+        Notary.sign(t_row, host.api_private_key)
         response = client.post('/api/logs', data=t_row)
         world.responses.append(response)
 
@@ -50,7 +50,7 @@ def when_i_send_a_request_for_all_of_group1_logs(step, host_key, field, value):
     host = Host.objects(api_key=host_key).first()
     req = { '_api_key': host_key, '_timestamp': time.time() }
     req[field] = value
-    ApiRequestAuthority.sign(req, host.api_private_key)
+    Notary.sign(req, host.api_private_key)
     world.response = client.get('/api/logs?' + urllib.urlencode(req))
 
 @step(u'Then I should get the two Logs in the response')

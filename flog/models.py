@@ -20,16 +20,17 @@ class Log(db.DynamicDocument):
     created = db.DateTimeField(default=datetime.datetime.now, required=True)
     host = db.ReferenceField(Host, dbref=False, required=True)
 
-    meta = {
-        'indexes': ['-created', 'host']
-    }
-
     @classmethod
     def to_json(cls, result_set):
         res = [el._data for el in result_set]
         for el in res:
             del el[None]
         return json.dumps(res, cls=DateEncoder)
+
+    meta = {
+        'indexes': ['-created', 'host']
+    }
+
 
 
 class Key(db.EmbeddedDocument):
@@ -52,6 +53,7 @@ class KeyRing(db.Document):
     public_key = db.StringField(unique=True)
     keys = db.ListField(db.EmbeddedDocumentField(Key))
     user = db.ReferenceField(User, dbref=False, required=True)
+
     meta = {
         'indexes': ['public_key']
     }

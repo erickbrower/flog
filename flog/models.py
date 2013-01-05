@@ -37,22 +37,21 @@ class Key(db.EmbeddedDocument):
     key = db.StringField(required=True)
 
 
-class KeyRing(db.Document):
-    public_key = db.StringField(unique=True)
-    keys = db.ListField(db.EmbeddedDocumentField(Key))
-
-    meta = {
-        'indexes': ['public_key']
-    }
-
-
 class User(db.Document):
     email_address = db.StringField(required=True)
     password_hash = db.StringField(required=True)
-    key_ring = db.ReferenceField(KeyRing, dbref=False)
     created = db.DateTimeField(default=datetime.datetime.now, required=True)
 
     meta = {
         'indexes': ['email_address'],
         'ordering': ['email_address']
+    }
+
+
+class KeyRing(db.Document):
+    public_key = db.StringField(unique=True)
+    keys = db.ListField(db.EmbeddedDocumentField(Key))
+    user = db.ReferenceField(User, dbref=False, required=True)
+    meta = {
+        'indexes': ['public_key']
     }

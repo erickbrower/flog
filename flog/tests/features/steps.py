@@ -36,9 +36,8 @@ def and_my_user_keyring_has_a_key_to_the_host(step):
         world.private_key = tr['private_key']
         kr = KeyRing(public_key=tr['public_key'])
         kr.keys.append(Key(host=host, key=world.private_key))
+        kr.user = user
         kr.save()
-        user.key_ring = kr
-        user.save()
 
 @step(u'When I send requests to create new Log entries')
 def when_i_send_requests_to_create_new_log_entries(step):

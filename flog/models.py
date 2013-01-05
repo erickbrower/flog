@@ -32,7 +32,6 @@ class Log(db.DynamicDocument):
     }
 
 
-
 class Key(db.EmbeddedDocument):
     host = db.ReferenceField(Host, dbref=False, required=True)
     key = db.StringField(required=True)

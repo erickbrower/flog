@@ -40,9 +40,10 @@ class HostModelTest(unittest.TestCase):
 class LogModelTest(unittest.TestCase):
     def setUp(self):
         app.config['TESTING'] = True
-        self.log = LogFactory()
+        self.log = LogFactory.build()
 
     def tearDown(self):
+        Host.drop_collection()
         Log.drop_collection()
 
     def test_should_have_attributes(self):

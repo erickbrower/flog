@@ -9,12 +9,10 @@ class NotaryTest(unittest.TestCase):
         self.private_key = 'gojira'
 
     def test_sign_invalid_payload(self):
-        with self.assertRaises(ValueError):
-            Notary.sign('wrongwongiswrong', 'gonnachoke')
+        self.assertFalse(Notary.sign('wrongwongiswrong', 'gonnachoke'))
 
     def test_validate_invalid_payload(self):
-        with self.assertRaises(ValueError):
-            Notary.validate('wrongwongiswrong', 'gonnachoke')
+        self.assertFalse(Notary.validate('wrongwongiswrong', 'gonnachoke'))
 
     def test_sign_valid_payload(self):
         signed_payload = Notary.sign(self.payload, self.private_key)
@@ -22,13 +20,11 @@ class NotaryTest(unittest.TestCase):
 
     def test_sign_invalid_payload_missing_timestamp(self):
         del self.payload['_timestamp']
-        with self.assertRaises(ValueError):
-            Notary.sign(self.payload, self.private_key)
+        self.assertFalse(Notary.sign(self.payload, self.private_key))
 
     def test_sign_invalid_payload_missing_api_key(self):
         del self.payload['_api_key']
-        with self.assertRaises(ValueError):
-            Notary.sign(self.payload, self.private_key)
+        self.assertFalse(Notary.sign(self.payload, self.private_key))
 
     def test_authenticate_valid_request(self):
         signed_payload = Notary.sign(self.payload, self.private_key)

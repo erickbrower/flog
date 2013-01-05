@@ -1,5 +1,7 @@
 import datetime 
+from flask import json
 from flog import db
+from flog.date_encoder import DateEncoder
 
 
 class Host(db.Document):
@@ -24,6 +26,13 @@ class Log(db.DynamicDocument):
     meta = {
         'indexes': ['-created', 'host']
     }
+
+    @classmethod
+    def to_json(cls, result_set):
+        res = [el._data for el in result_set]
+        for el in res:
+            del el[None]
+        return json.dumps(res, cls=DateEncoder)
 
 
 class User(db.Document):

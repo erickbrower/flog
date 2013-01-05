@@ -6,7 +6,7 @@ from flask import json
 from lettuce import step, world
 from flog import app
 from flog.models import Host, Log
-from flog.notary import Notary
+from flog.lib.notary import Notary
 
 app.config['TESTING'] = True
 client = app.test_client()

@@ -1,6 +1,6 @@
 import unittest
 import time
-from flog.notary import Notary
+from flog.lib.notary import Notary
 
 
 class NotaryTest(unittest.TestCase):

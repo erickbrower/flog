@@ -1,7 +1,7 @@
 import datetime 
 from flask import json
 from flog import db
-from flog.date_encoder import DateEncoder
+from flog.lib.date_encoder import DateEncoder
 
 
 class Host(db.Document):

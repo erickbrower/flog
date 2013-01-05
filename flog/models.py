@@ -1,14 +1,11 @@
 import datetime 
 from flask import json
 from flog import db
-from flog.lib.date_encoder import DateEncoder
+from flog.date_encoder import DateEncoder
 
 
 class Host(db.Document):
     name = db.StringField(max_length=255, required=True)
-    instance = db.StringField(max_length=255)
-    api_key = db.StringField(max_length=255, unique=True, required=True)
-    api_private_key = db.StringField(required=True)
     created = db.DateTimeField(default=datetime.datetime.now, required=True)
     description = db.StringField()
 
@@ -35,13 +32,27 @@ class Log(db.DynamicDocument):
         return json.dumps(res, cls=DateEncoder)
 
 
+class Key(db.EmbeddedDocument):
+    host = db.ReferenceField(Host, dbref=False, required=True)
+    key = db.StringField(required=True)
+
+
+class KeyRing(db.Document):
+    public_key = db.StringField(unique=True)
+    keys = db.ListField(db.EmbeddedDocumentField(Key))
+
+    meta = {
+        'indexes': ['public_key']
+    }
+
+
 class User(db.Document):
     email_address = db.StringField(required=True)
     password_hash = db.StringField(required=True)
+    key_ring = db.ReferenceField(KeyRing, dbref=False)
     created = db.DateTimeField(default=datetime.datetime.now, required=True)
 
     meta = {
         'indexes': ['email_address'],
         'ordering': ['email_address']
     }
-

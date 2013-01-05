@@ -35,9 +35,6 @@ class KeyMaster(object):
         Returns:
             True if the generated hash matches the request signature, False
             if not.
-
-        Raises:
-            InvalidRequestParamsError: The signature request param is missing.
         """
         if not cls.can_be_signed(payload):
             return False

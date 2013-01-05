@@ -32,11 +32,6 @@ class Log(db.DynamicDocument):
     }
 
 
-class Key(db.EmbeddedDocument):
-    host = db.ReferenceField(Host, dbref=False, required=True)
-    key = db.StringField(required=True)
-
-
 class User(db.Document):
     email_address = db.StringField(required=True)
     password_hash = db.StringField(required=True)
@@ -46,6 +41,12 @@ class User(db.Document):
         'indexes': ['email_address'],
         'ordering': ['email_address']
     }
+
+
+class Key(db.EmbeddedDocument):
+    host = db.ReferenceField(Host, dbref=False, required=True)
+    key = db.StringField(required=True)
+    created = db.DateTimeField(default=datetime.datetime.now, required=True)
 
 
 class KeyRing(db.Document):

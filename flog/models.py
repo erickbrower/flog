@@ -1,59 +1,79 @@
 import datetime 
-from flask import json
-from flog import db
-from flog.date_encoder import DateEncoder
+from mongokit import Document, Connection
+
+connection = Connection()
+db = connection['flog_dev_mongokit']
+
+class BaseDocument(Document):
+    def save(self, uuid=False, validate=None, safe=True, *args, **kwargs):
+        if hasattr(self, '_before_save') and callable(getattr(self, '_before_save')): 
+            self._before_save()
+        result = super(BaseDocument, self).save(uuid, validate, safe, *args, **kwargs) 
+        if hasattr(self, '_after_save') and callable(getattr(self, '_after_save')): 
+            self._after_save()
+        return result
 
 
-class Host(db.Document):
-    name = db.StringField(max_length=255, required=True)
-    created = db.DateTimeField(default=datetime.datetime.now, required=True)
-    description = db.StringField()
+@connection.register
+class Node(BaseDocument):
 
-    meta = {
-        'allow_inheritance': True,
-        'indexes': ['name', '-created'],
-        'ordering': ['name']
-    }
+    __collection__ = 'nodes'
 
+    structure = { 
+            'name': unicode,
+            'domain_ip': unicode,
+            'description': unicode,
+            'created': datetime.datetime,
+            'modified': datetime.datetime
+            }
 
-class Log(db.DynamicDocument):
-    created = db.DateTimeField(default=datetime.datetime.now, required=True)
-    host = db.ReferenceField(Host, dbref=False, required=True)
+    required_fields = ['name', 'domain_ip']
 
-    @classmethod
-    def to_json(cls, result_set):
-        res = [el._data for el in result_set]
-        for el in res:
-            del el[None]
-        return json.dumps(res, cls=DateEncoder)
-
-    meta = {
-        'indexes': ['-created', 'host']
-    }
+    default_values = {
+            'created': datetime.datetime.utcnow,
+            'modified': datetime.datetime.utcnow
+            }
 
 
-class User(db.Document):
-    email_address = db.StringField(required=True)
-    password_hash = db.StringField(required=True)
-    created = db.DateTimeField(default=datetime.datetime.now, required=True)
+@connection.register
+class Stream(BaseDocument):
 
-    meta = {
-        'indexes': ['email_address'],
-        'ordering': ['email_address']
-    }
+    __collection__ = 'streams'
+
+    structure = {
+            'name': unicode,
+            'description': unicode,
+            'public_key': unicode,
+            'private_key': unicode,
+            'log_collection': unicode,
+            'log_max_size_mb': int,
+            'created': datetime.datetime,
+            'modified': datetime.datetime,
+            'node': Node
+            }
+
+    use_autorefs = True
+
+    required_fields = ['name', 'public_key', 'private_key', 'log_collection']
+
+    default_values = {
+            'log_max_size_mb': 100,
+            'created': datetime.datetime.utcnow,
+            'modified': datetime.datetime.utcnow
+            }
 
 
-class Key(db.EmbeddedDocument):
-    host = db.ReferenceField(Host, dbref=False, required=True)
-    key = db.StringField(required=True)
-    created = db.DateTimeField(default=datetime.datetime.now, required=True)
+@connection.register
+class Log(BaseDocument):
+    structure = {
+            'created': datetime.datetime
+            }
 
+    use_schemaless = True
 
-class KeyRing(db.Document):
-    public_key = db.StringField(unique=True)
-    keys = db.ListField(db.EmbeddedDocumentField(Key))
-    user = db.ReferenceField(User, dbref=False, required=True)
+    required_fields = ['created']
 
-    meta = {
-        'indexes': ['public_key']
-    }
+    default_values = {
+            'created': datetime.datetime.utcnow
+            }
+

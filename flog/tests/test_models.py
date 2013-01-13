@@ -1,88 +1,132 @@
 from flog import app
-from flog.models import Host, Log, User 
-from flask.ext.mongoengine import ValidationError
-from factories import HostFactory, LogFactory, UserFactory, KeyRingFactory, KeyFactory
-import unittest
+from flog.models import db
+from mongokit import RequireFieldError
+import unittest, uuid
+
+def node_factory():
+    node = db.Node()
+    node['name'] = u'Test Node %s' % uuid.uuid1()
+    node['domain_ip'] = u'erickbrower.org'
+    node['description'] = u'Things and stuff.'
+    return node
+
+def stream_factory():
+    stream = db.Stream()
+    stream['name'] = u'Test Log Stream %s' % uuid.uuid1()
+    stream['description'] = u'This is a test!'
+    stream['public_key'] = u'mickey'
+    stream['private_key'] = unicode(uuid.uuid1())
+    stream['log_collection'] = u'test_%s' % uuid.uuid1()
+    stream['log_max_size_mb'] = 50
+    return stream
+
+def log_factory(collection):
+    log = db[collection].Log()
+    log['walk'] = u'hard'
+    log['guilty'] = u'as charged'
+    return log
 
 
-class HostModelTest(unittest.TestCase):
+class NodeModelTest(unittest.TestCase):
     def setUp(self):
         app.config['TESTING'] = True
-        self.host = HostFactory()
+        self.node = node_factory()
 
     def tearDown(self):
-        Host.drop_collection()
+        db.drop_collection('nodes')
+
+    def test_should_save(self):
+        self.node.save()
+        node = db.Node.find_one({u'domain_ip': u'erickbrower.org'})
+        assert node is not None
+
+    def test_should_retrieve(self):
+        self.node.save()
 
     def test_should_have_attributes(self):
-        assert hasattr(self.host, 'name')
-        assert hasattr(self.host, 'description')
-        assert hasattr(self.host, 'created')
+        attrs = ('name', 'domain_ip', 'description', 'created', 'modified')
+        for attr in attrs:
+            assert attr in self.node
 
     def test_should_require_name(self):
-        self.host.name = None
-        with self.assertRaises(ValidationError):
-            self.host.validate()
+        self.node['name'] = None
+        with self.assertRaises(RequireFieldError):
+            self.node.save()
+
+    def test_should_require_domain_ip(self):
+        self.node['domain_ip'] = None
+        with self.assertRaises(RequireFieldError):
+            self.node.save()
 
 
-class LogModelTest(unittest.TestCase):
+class StreamModelTest(unittest.TestCase):
     def setUp(self):
         app.config['TESTING'] = True
-        self.log = LogFactory.build()
+        self.node = node_factory()
+        self.node.save()
+        self.stream = stream_factory()
+        self.stream.node = self.node
 
     def tearDown(self):
-        Host.drop_collection()
-        Log.drop_collection()
+        db.drop_collection('streams')
+        db.drop_collection('nodes')
+
+    def test_should_save(self):
+        self.stream.save()
+
+    def test_should_retrieve(self):
+        self.stream.save()
+        stream = db.Stream.find_one({u'public_key': u'mickey'})
+        assert stream is not None
 
     def test_should_have_attributes(self):
-        assert hasattr(self.log, 'host')
-        assert hasattr(self.log, 'created')
+        attrs = (u'name', u'description', u'public_key', u'private_key', \
+                u'log_collection', u'log_max_size_mb', u'created', u'modified', \
+                u'node')
+        for attr in attrs:
+            assert attr in self.stream
 
-    def test_should_require_host(self):
-        self.log.host = None
-        with self.assertRaises(ValidationError):
-            self.log.validate()
+    def test_should_require_name(self):
+        self.stream[u'name'] = None
+        with self.assertRaises(RequireFieldError):
+            self.stream.save()
+
+    def test_should_require_public_key(self):
+        self.stream[u'public_key'] = None
+        with self.assertRaises(RequireFieldError):
+            self.stream.save()
+
+    def test_should_require_private_key(self):
+        self.stream[u'private_key'] = None
+        with self.assertRaises(RequireFieldError):
+            self.stream.save()
+
+    def test_should_require_log_collection(self):
+        self.stream[u'log_collection'] = None
+        with self.assertRaises(RequireFieldError):
+            self.stream.save()
 
 
-class UserModelTest(unittest.TestCase):
+class LogModelTesT(unittest.TestCase):
     def setUp(self):
         app.config['TESTING'] = True
-        self.user = UserFactory.build()
+        self.node = node_factory()
+        self.node.save()
+        self.stream = stream_factory()
+        self.stream.node = self.node
+        self.stream.save()
+        self.log = log_factory(self.stream[u'log_collection'])
 
     def tearDown(self):
-        User.drop_collection()
+        db.drop_collection(self.stream[u'log_collection'])
+
+    def test_should_save(self):
+        self.log.save()
 
     def test_should_have_attributes(self):
-        assert hasattr(self.user, 'email_address')
-        assert hasattr(self.user, 'password_hash')
-        assert hasattr(self.user, 'created')
+        assert 'created' in self.log
 
-    def test_should_require_email_address(self):
-        self.user.email_address = None
-        with self.assertRaises(ValidationError):
-            self.user.validate()
-
-    def test_should_require_password_hash(self):
-        self.user.password_hash = None
-        with self.assertRaises(ValidationError):
-            self.user.validate()
-
-
-class KeyModelTest(unittest.TestCase):
-    def setUp(self):
-        app.config['TESTING'] = True
-        self.key = KeyFactory.build()
-
-    def test_should_have_attributes(self):
-        assert hasattr(self.key, 'host')
-        assert hasattr(self.key, 'key')
-
-
-class KeyRingModelTest(unittest.TestCase):
-    def setUp(self):
-        app.config['TESTING'] = True
-        self.keyring = KeyRingFactory.build()
-
-    def test_should_have_attributes(self):
-        assert hasattr(self.keyring, 'user')
-        assert hasattr(self.keyring, 'keys')
-
+    def test_should_retrieve(self):
+        self.log.save()
+        log = db[self.stream[u'log_collection']].Log.find_one({u'walk':u'hard'})
+        assert log is not None

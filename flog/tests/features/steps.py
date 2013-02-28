@@ -6,7 +6,6 @@ from flask import json
 from flog import app
 from flog.models import db
 from flog.key_master import KeyMaster 
-from pprint import pprint
 
 app.config['TESTING'] = True
 client = app.test_client()

@@ -41,7 +41,6 @@ def when_i_send_requests_to_add_new_log_entries_to_the_stream(step):
         payload = KeyMaster.sign(tr, world.streams[0]['private_key'])
         tr[KeyMaster.SIG_KEY] = payload['_signature']
         response = client.post('/api/logs', data=payload)
-        pprint(response)
         world.responses.append(response)
 
 @step(u'Then I should receive successful responses')
